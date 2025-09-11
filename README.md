@@ -10,9 +10,9 @@ Total number of papers: 4,604
 
 ### Download status
 
-| Success |  Errors |  No url |
-|--------:|--------:|--------:|
-|   2,294 |   2,263 |      47 |
+| Success | Errors |  No url |
+|--------:|-------:|--------:|
+|   2,296 |  2,261 |      47 |
 
 ### Preprocessing steps
 

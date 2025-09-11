@@ -47,7 +47,7 @@ def main():
     urllib.request.install_opener(opener)
 
     paper_meta_path = "data/openalex-search-result-retrieval-augmented-generation_2025-09-03.csv"
-    paper_fulltext_dir = "data/paper/"
+    paper_fulltext_dir = "data/paper/pdf"
 
     df = pd.read_csv(paper_meta_path)
 

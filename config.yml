@@ -1,0 +1,14 @@
+config:
+  data:
+    raw_dir: "data/paper/md"
+    meta_file: "data/openalex-search-result-retrieval-augmented-generation_2025-09-03.csv"
+
+  index:
+    weaviate:
+      http_host: "weaviate.srv.webis.de"
+      http_port: 443
+      http_secure: true
+
+      grpc_host: "weaviate-grpc.srv.webis.de"
+      grpc_port: 443
+      grpc_secure: true
