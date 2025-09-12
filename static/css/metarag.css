@@ -1,0 +1,7 @@
+.utterance-box {
+    max-width: 80%;
+}
+
+#chat-window {
+    resize: none;
+}
