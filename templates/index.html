@@ -1,19 +1,21 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>MetaRAG</title>
+    <title>{{ app.title }}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="copyright" content="&copy; 2025 Webis">
     <link rel="icon" type="image/png" href="https://assets.webis.de/img/favicon.png">
 
     <link rel="stylesheet" href="https://assets.webis.de/css/style.css">
-    <link rel="stylesheet" href="../css/metarag.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/metarag.css') }}">
 </head>
 <body class="uk-offcanvas-content">
 <script src="https://assets.webis.de/js/thirdparty/uikit/uikit.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/uikit/uikit-icons.min.js"></script>
-<script src="../js/metarag.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/showdown@2.0.3/dist/showdown.min.js"></script>
+<script src="{{ url_for('static', path='js/metarag.js') }}"></script>
+
 
 <div class="uk-background-secondary global-nav" data-uk-sticky>
     <nav class="uk-navbar-container uk-navbar-transparent uk-container uk-light" data-uk-navbar="mode: click">
@@ -29,23 +31,23 @@
 
 <template id="chat-templates">
     <div class="chat-box user-box">
-        <div class="uk-card uk-card-body uk-card-small uk-card-default uk-width-auto uk-align-right uk-background-muted utterance-box">
-            <p class="uk-text-large uk-text-right utterance">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+            <div class="utterance-box uk-background-muted">
+                <p class="uk-text-large utterance">Hi</p>
+            </div>
         </div>
-    </div>
 
-    <div class="chat-box system-box">
-        <div class="uk-card uk-card-body uk-card-small uk-card-default uk-width-auto uk-align-left utterance-box">
-            <p class="uk-text-large uk-text-left utterance">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+        <div class="chat-box system-box">
+            <div class="utterance-box">
+                <p class="uk-text-large utterance">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+            </div>
         </div>
-    </div>
 </template>
 
 <div class="uk-container uk-margin-top" >
     <header>
-        <h1 class="uk-heading uk-text-left">MetaRAG <span class="uk-text-default uk-text-light uk-margin-left">Let RAG be explained by a RAG system...</span></h1>
-
+        <h1 class="uk-heading uk-text-left">{{ app.title }} <span class="uk-badge">{{ app.version }}</span> <span class="uk-text-default uk-text-light uk-margin-left">Let RAG be explained by a RAG system...</span></h1>
     </header>
+
     <div id="chat-window" class="uk-margin-bottom uk-width-1-1 uk-panel-scrollable" data-uk-height-viewport="expand: true" data-uk-resize="off">
 
     </div>

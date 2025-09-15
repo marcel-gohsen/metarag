@@ -15,3 +15,6 @@ config:
 
     elastic:
       hosts: "https://elasticsearch.srv.webis.de"
+
+  app:
+    title: "MetaRAG"
