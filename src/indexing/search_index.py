@@ -69,27 +69,25 @@ class ElasticsearchIndex(SearchIndex):
             return
 
         self.mappings = {
-            "mappings": {
-                "properties": {
-                    "meta": {
-                        "properties": {
-                            "title": {"type": "text"},
-                            "doi": {"type": "keyword"},
-                            "type": {"type": "keyword"},
-                            "publication_year": {"type": "integer"},
-                            "language": {"type": "keyword"},
-                            "published": {"type": "text"},
-                            "authors": {"type": "array"},
-                            "topics": {"type": "array"},
-                            "subfields": {"type": "array"},
-                            "keywords": {"type": "array"},
-                            "chunk_id": {"type": "integer"},
-                        }
-                    },
-                    "text": {"type": "text"},
-                    "vector": {"type": "dense_vector",
-                               "dims": 1024},
-                }
+            "properties": {
+                "meta": {
+                    "properties": {
+                        "title": {"type": "text"},
+                        "doi": {"type": "keyword"},
+                        "type": {"type": "keyword"},
+                        "publication_year": {"type": "integer"},
+                        "language": {"type": "keyword"},
+                        "published": {"type": "text"},
+                        "authors": {"type": "text"},
+                        "topics": {"type": "text"},
+                        "subfields": {"type": "text"},
+                        "keywords": {"type": "text"},
+                        "chunk_id": {"type": "integer"},
+                    }
+                },
+                "text": {"type": "text"},
+                "vector": {"type": "dense_vector",
+                           "dims": 1024},
             }
         }
 
@@ -113,8 +111,8 @@ class ElasticsearchIndex(SearchIndex):
 
         operations = []
         for doc in documents:
-            operations.append({"index": {"_index": self.index_name, "_id": doc["id"]}})
-            operations.append({"_source": doc})
+            operations.append({"index": {"_index": self.index_name, "_id": f'{doc["meta"]["id"]}:{doc["meta"]["chunk_id"]}'}})
+            operations.append(doc)
 
         self.es_client.bulk(index=self.index_name, operations=operations, refresh=True)
 

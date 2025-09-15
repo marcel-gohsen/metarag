@@ -66,12 +66,13 @@ def load_jsonl(path: str) -> Generator[Dict[str, Any], None, None]:
 
 
 @click.command()
-@click.option("--index-type", type=click.Choice(list(INDICES.keys())), default="weaviate")
+@click.option("--index-type", type=click.Choice(list(INDICES.keys())), default="elastic")
 @click.option("--emb-model", type=click.Choice(list(EMBEDDING_MODELS.keys())), default="qwen3-embedding-0.6B")
-@click.option("--batch-size", type=int, default=128)
+@click.option("--batch-size", type=int, default=64)
 def main(emb_model: str, index_type: str, batch_size: int):
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
 
     search_index = None
 
@@ -105,7 +106,7 @@ def main(emb_model: str, index_type: str, batch_size: int):
                     for chunk, vector in zip(chunk_batch, vectors):
                         num_chunks += 1
                         batch_docs.append({
-                            "meta": {**document["meta"], "chunk_id": chunk_id},
+                            "meta": {**document["meta"], "chunk_id": chunk_id, "id": document["id"]},
                             "text": chunk,
                             "vector": vector.numpy()
                         })

@@ -20,14 +20,16 @@ build_base:
 push:
 	docker push ${BASE_IMAGE} --all-tags
 
-EMB_MODEL="qwen3-embedding-4B"
+ES_API_KEY=""
+INDEX_TYPE="elastic"
+EMB_MODEL="qwen3-embedding-0.6B"
 BATCH_SIZE=64
 run_indexing_slurm:
 	rsync --ignore-existing --progress data/paper/md/*.md /mnt/ceph/storage/data-tmp/current/kipu5728/rag-on-rag/data/paper/md/
 	rsync --ignore-existing --progress data/openalex-search-result-retrieval-augmented-generation_2025-09-03.csv /mnt/ceph/storage/data-tmp/current/kipu5728/rag-on-rag/data/
 	rsync indexing.sbatch.sh /mnt/ceph/storage/data-tmp/2025/kipu5728/rag-on-rag/
 	ssh ssh.webis.de \
-		'EMB_MODEL=${EMB_MODEL} BATCH_SIZE=${BATCH_SIZE} sbatch --container-env=EMB_MODEL,BATCH_SIZE rag-on-rag/indexing.sbatch.sh'
+		'ES_API_KEY=${ES_API_KEY} INDEX_TYPE=${INDEX_TYPE} EMB_MODEL=${EMB_MODEL} BATCH_SIZE=${BATCH_SIZE} sbatch --container-env=EMB_MODEL,BATCH_SIZE rag-on-rag/indexing.sbatch.sh'
 
 
 
