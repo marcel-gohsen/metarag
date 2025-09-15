@@ -1,0 +1,11 @@
+*
+
+!src/**
+!poetry.lock
+!pyproject.toml
+!README.md
+!config.yml
+
+
+**/__pycache__/
+**/*.py[cod]

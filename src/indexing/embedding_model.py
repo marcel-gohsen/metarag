@@ -19,12 +19,19 @@ class EmbeddingModel(metaclass=abc.ABCMeta):
 
 
 class SentenceTransformerEmbeddingModel(EmbeddingModel):
-    def __init__(self, model_id, **kwargs):
+    def __init__(self, model_id, query_prompt_name="s2p_query",**kwargs):
         super().__init__(**kwargs)
-        self.model = SentenceTransformer(model_id, trust_remote_code=True)
+        self.model = SentenceTransformer(model_id, trust_remote_code=True,
+                                         model_kwargs={"attn_implementation": "flash_attention_2", "torch_dtype": torch.float16})
+        self.query_prompt_name = query_prompt_name
 
     def embed_queries(self, queries: List[str]) -> List[torch.Tensor]:
-        embeddings = self.model.encode(queries, batch_size=len(queries), query_prompt_name="s2p_query", show_progress_bar=False, **self.emb_kwargs)
+        embeddings = self.model.encode(
+            queries,
+            batch_size=len(queries),
+            query_prompt_name=self.query_prompt_name,
+            show_progress_bar=False,
+            **self.emb_kwargs)
         embeddings = [torch.tensor(emb) for emb in embeddings]
 
         return embeddings

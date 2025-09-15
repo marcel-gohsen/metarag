@@ -7,11 +7,11 @@ from typing import Any, Dict, Generator
 
 import click
 import pandas as pd
-from pygments.lexer import default
 from tqdm import tqdm
 
 from config import EMBEDDING_MODELS, INDICES, CONFIG
 from indexing.chunking import SemanticChunker
+from indexing.search_index import DenseIndex
 
 
 def load_raw(path: str) -> Generator[Dict[str, Any], None, None]:
@@ -66,11 +66,10 @@ def load_jsonl(path: str) -> Generator[Dict[str, Any], None, None]:
 
 
 @click.command()
-@click.option("--index-name", type=str, default="RAGPapers")
 @click.option("--index-type", type=click.Choice(list(INDICES.keys())), default="weaviate")
-@click.option("--emb-model", type=click.Choice(list(EMBEDDING_MODELS.keys())), default="stella_en_400M_v5")
+@click.option("--emb-model", type=click.Choice(list(EMBEDDING_MODELS.keys())), default="qwen3-embedding-0.6B")
 @click.option("--batch-size", type=int, default=128)
-def main(index_name: str, emb_model: str, index_type: str, batch_size: int):
+def main(emb_model: str, index_type: str, batch_size: int):
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     logging.getLogger("httpx").setLevel(logging.WARNING)
 
@@ -84,10 +83,15 @@ def main(index_name: str, emb_model: str, index_type: str, batch_size: int):
         embedding_model = EMBEDDING_MODELS[emb_model]()
 
         logging.info("Connect to index...")
-        search_index = INDICES[index_type](index_name, embedding_model)
+        search_index_class = INDICES[index_type]
+        if issubclass(search_index_class, DenseIndex):
+            search_index = search_index_class(emb_model, **CONFIG["index"][index_type])
+        else:
+            search_index = search_index_class(**CONFIG["index"][index_type])
+
         search_index.delete()
 
-        chunker = SemanticChunker(chunk_length=128, overlap=0.3)
+        chunker = SemanticChunker(chunk_length=256, overlap=0.3)
 
         logging.info("Start indexing...")
         for document in tqdm(load_raw(CONFIG["data"]["raw_dir"]), total=count_raw(CONFIG["data"]["raw_dir"])):

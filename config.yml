@@ -12,3 +12,6 @@ config:
       grpc_host: "weaviate-grpc.srv.webis.de"
       grpc_port: 443
       grpc_secure: true
+
+    elastic:
+      hosts: "https://elasticsearch.srv.webis.de"

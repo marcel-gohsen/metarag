@@ -18,7 +18,8 @@ dependencies = [
     "sentence-transformers (>=5.1.0,<6.0.0)",
     "weaviate-client (>=4.16.9,<5.0.0)",
     "click (>=8.2.1,<9.0.0)",
-    "xformers (>=0.0.32.post2,<0.0.33)"
+    "xformers (>=0.0.32.post2,<0.0.33)",
+    "elasticsearch (>=9.1.1,<10.0.0)"
 ]
 
 
@@ -26,7 +27,8 @@ dependencies = [
 [tool.poetry]
 packages = [
     { include = "src/paper_crawling" },
-    { include = "src/indexing" }
+    { include = "src/indexing" },
+    { include = "*", from = "src" }
 ]
 
 [tool.poetry.group.dev.dependencies]
