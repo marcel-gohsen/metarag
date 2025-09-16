@@ -2,11 +2,11 @@ import json
 import logging
 import os
 import urllib
-import requests
 from urllib import request
 from urllib.error import HTTPError
 
 import pandas as pd
+import requests
 from retry import retry
 from tqdm import tqdm
 
@@ -46,7 +46,7 @@ def main():
     opener.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0')]
     urllib.request.install_opener(opener)
 
-    paper_meta_path = "data/openalex-search-result-retrieval-augmented-generation_2025-09-03.csv"
+    paper_meta_path = "data/dagstuhl-papers.csv"
     paper_fulltext_dir = "data/paper/pdf"
 
     df = pd.read_csv(paper_meta_path)
