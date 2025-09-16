@@ -24,3 +24,26 @@
 .user-box .utterance-box{
     float: right;
 }
+
+.loading:after {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
+  -webkit-animation: ellipsis steps(4, end) 900ms infinite;
+  animation: ellipsis steps(4, end) 900ms infinite;
+  /* ascii code for the ellipsis character */
+  content: "\2026";
+  width: 0px;
+}
+
+@keyframes ellipsis {
+  to {
+    width: 40px;
+  }
+}
+
+@-webkit-keyframes ellipsis {
+  to {
+    width: 40px;
+  }
+}

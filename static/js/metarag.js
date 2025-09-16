@@ -8,7 +8,6 @@ function main() {
     let templates = document.getElementById("chat-templates")
     TEMPLATES.userBox = templates.content.querySelector(".user-box").cloneNode(true);
     TEMPLATES.systemBox = templates.content.querySelector(".system-box").cloneNode(true);
-    console.log(TEMPLATES);
 }
 
 async function inputSubmitted(e){
@@ -28,16 +27,21 @@ async function inputSubmitted(e){
         conversation.push({"role": role, "content": utterance.textContent})
 
         if (role === "user"){
-            role = "system"
+            role = "assistant"
+        } else if (role === "assistant"){
+            role = "user"
         }
     }
 
+    console.log(conversation)
     await chat(conversation)
 }
 
 async function chat(conversation){
     let systemBox = TEMPLATES.systemBox.cloneNode(true)
-    systemBox.querySelector(".utterance").innerHTML = ""
+    let utterance = systemBox.querySelector(".utterance")
+    utterance.innerHTML = ""
+    utterance.classList.add("loading")
     document.getElementById("chat-window").appendChild(systemBox)
 
     const response = await fetch("chat",
@@ -60,6 +64,9 @@ async function chat(conversation){
         }
 
         text += JSON.parse(textDecoder.decode(value)).text
-        systemBox.querySelector(".utterance").innerHTML = converter.makeHtml(text)
+        let utterance = systemBox.querySelector(".utterance")
+        utterance.classList.remove("loading")
+        utterance.innerHTML = converter.makeHtml(text)
+        utterance.scrollIntoView()
     }
 }
