@@ -63,7 +63,9 @@ async function chat(conversation){
             return
         }
 
-        text += JSON.parse(textDecoder.decode(value)).text
+        let decoded = textDecoder.decode(value)
+        console.log(decoded)
+        text += JSON.parse(decoded).text
         let utterance = systemBox.querySelector(".utterance")
         utterance.classList.remove("loading")
         utterance.innerHTML = converter.makeHtml(text)

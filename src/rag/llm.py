@@ -174,6 +174,7 @@ class HFModel(LLM, metaclass=abc.ABCMeta):
         thread.start()
 
         for token in streamer:
+            token = token.replace(self.tokenizer.eos_token, "")
             yield token
 
 

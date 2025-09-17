@@ -1,3 +1,4 @@
+import asyncio
 import importlib.metadata
 import json
 import logging
@@ -13,6 +14,7 @@ from starlette.templating import Jinja2Templates
 from config import CONFIG, INDICES
 from rag.llm import HFModelQuantized, LLMVersion, Precision
 from rag.pipeline import SparsePipeline
+from rag.prompt import SystemPromptBuilder
 from rag.query import IdentityFormulator
 
 app = FastAPI(
@@ -26,7 +28,7 @@ templates = Jinja2Templates(directory="templates")
 pipeline = SparsePipeline(
     query_formulator=IdentityFormulator(),
     search_index=INDICES["elastic"](**CONFIG["index"]["elastic"]),
-    prompt_builder=None,
+    prompt_builder=SystemPromptBuilder(),
     llm=HFModelQuantized(LLMVersion.Gemma_3_4B_IT, Precision.NF4)
 )
 
@@ -48,6 +50,7 @@ def chat(conversation: List[Utterance]):
     async def streamer():
         for token in pipeline.chat(conversation):
             yield json.dumps({"text": token}) + "\n"
+            await asyncio.sleep(0.1)
 
     return StreamingResponse(streamer(), media_type='text/event-stream')
 
