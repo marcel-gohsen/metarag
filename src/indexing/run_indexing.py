@@ -93,11 +93,17 @@ def main(emb_model: str, index_type: str, batch_size: int):
         search_index.delete()
 
         chunker = SemanticChunker(chunk_length=256, overlap=0.3)
+        references_pattern = re.compile(r"(?:References?|REFERENCES?)\s*?", flags=re.MULTILINE)
 
         logging.info("Start indexing...")
         for document in tqdm(load_raw(CONFIG["data"]["raw_dir"]), total=count_raw(CONFIG["data"]["raw_dir"])):
             chunk_id = 0
             num_documents += 1
+
+            res = references_pattern.search(document["fulltext"])
+            if res is not None:
+                document["fulltext"] = document["fulltext"][:res.start()]
+
             for document_chunks in chunker.chunk([document["fulltext"]]):
                 for chunk_batch in itertools.batched(document_chunks, batch_size):
                     batch_docs = []

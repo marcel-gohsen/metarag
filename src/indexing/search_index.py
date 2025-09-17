@@ -118,7 +118,19 @@ class ElasticsearchIndex(SearchIndex):
 
 
     def search(self, queries: List[str]) -> List[Dict[str, Any]]:
-        pass
+        operations = []
+        for query in queries:
+            operations.append({"index": self.index_name})
+            operations.append({"query": {"match": {"text": query}}, "size": 1000})
+        results = self.es_client.msearch(searches=operations)
+
+        hits = []
+        for response in results["responses"]:
+            for hit in response["hits"]["hits"]:
+                hit["_source"]["score"] = hit["_score"]
+                hits.append(hit["_source"])
+
+        return list(sorted(hits, key=lambda hit: hit["score"], reverse=True))
 
     def delete(self):
         if self.es_client.indices.exists(index=self.index_name):
@@ -154,7 +166,7 @@ class WeaviateIndex(DenseIndex):
                          Property(name="title", data_type=DataType.TEXT),
                          Property(name="doi", data_type=DataType.TEXT),
                          Property(name="type", data_type=DataType.TEXT),
-                         Property(name="publication_year", data_type=DataType.NUMBER),
+                         Property(name="publication_year", data_type=DataType.INT),
                          Property(name="language", data_type=DataType.TEXT),
                          Property(name="published", data_type=DataType.TEXT),
                          Property(name="authors", data_type=DataType.TEXT_ARRAY),
@@ -179,6 +191,12 @@ class WeaviateIndex(DenseIndex):
 
         objects = []
         for document in documents:
+            del document["meta"]["id"]
+            try:
+                document["meta"]["publication_year"] = int(document["meta"]["publication_year"])
+            except (ValueError, KeyError):
+                document["meta"]["publication_year"] = None
+
             objects.append(
                 wvc.data.DataObject(
                     properties={"meta": document["meta"], "text": document["text"]},
