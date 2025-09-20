@@ -11,11 +11,9 @@ from starlette.responses import StreamingResponse
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from config import CONFIG, INDICES
-from rag.llm import HFModelQuantized, LLMVersion, Precision
-from rag.pipeline import SparsePipeline
-from rag.prompt import SystemPromptBuilder
-from rag.query import IdentityFormulator
+from config import CONFIG, INDICES, EMBEDDING_MODELS
+from rag.llm import OpenAIModel, OpenAIModelVersion
+from rag.pipeline import HybridPipeline
 
 app = FastAPI(
     title=CONFIG["app"]["title"],
@@ -25,11 +23,10 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-pipeline = SparsePipeline(
-    query_formulator=IdentityFormulator(),
-    search_index=INDICES["elastic"](**CONFIG["index"]["elastic"]),
-    prompt_builder=SystemPromptBuilder(),
-    llm=HFModelQuantized(LLMVersion.Gemma_3_4B_IT, Precision.NF4)
+pipeline = HybridPipeline(
+    sparse_index=INDICES["elastic"](**CONFIG["index"]["elastic"]),
+    dense_index=INDICES["weaviate"](EMBEDDING_MODELS["qwen3-embedding-4B"](), **CONFIG["index"]["weaviate"]),
+    llm=OpenAIModel(OpenAIModelVersion.GPT_4_1)
 )
 
 class Utterance(BaseModel):

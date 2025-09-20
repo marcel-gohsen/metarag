@@ -63,7 +63,7 @@ class ElasticsearchIndex(SearchIndex):
 
         try:
             self.es_client = Elasticsearch(api_key=api_key,
-                                           retry_on_timeout=True, max_retries=10, **self.index_kwargs)
+                                           retry_on_timeout=True, retry_on_status=True, max_retries=10, **self.index_kwargs)
         except AuthenticationException:
             self.logger.error("Authentication to Elasticsearch failed!")
             return
@@ -77,6 +77,7 @@ class ElasticsearchIndex(SearchIndex):
                         "type": {"type": "keyword"},
                         "publication_year": {"type": "integer"},
                         "language": {"type": "keyword"},
+                        "cited_by": {"type": "integer"},
                         "published": {"type": "text"},
                         "authors": {"type": "text"},
                         "topics": {"type": "text"},
@@ -114,7 +115,9 @@ class ElasticsearchIndex(SearchIndex):
             operations.append({"index": {"_index": self.index_name, "_id": f'{doc["meta"]["id"]}:{doc["meta"]["chunk_id"]}'}})
             operations.append(doc)
 
-        self.es_client.bulk(index=self.index_name, operations=operations, refresh=True)
+        response = self.es_client.bulk(index=self.index_name, operations=operations, refresh=True)
+        if response.body["errors"]:
+            self.logger.error(response.body)
 
 
     def search(self, queries: List[str]) -> List[Dict[str, Any]]:
@@ -131,6 +134,18 @@ class ElasticsearchIndex(SearchIndex):
                 hits.append(hit["_source"])
 
         return list(sorted(hits, key=lambda hit: hit["score"], reverse=True))
+
+    def faceted_search(self, query: Dict[str, Any]) -> List[Dict[str, Any]]:
+        response = self.es_client.search(index=self.index_name, body=query, size=1000, source_excludes="vector")
+        hits = []
+
+        for hit in response["hits"]["hits"]:
+            hit["_source"]["score"] = hit["_score"]
+            hits.append(hit["_source"])
+
+        return hits
+
+
 
     def delete(self):
         if self.es_client.indices.exists(index=self.index_name):
@@ -168,6 +183,7 @@ class WeaviateIndex(DenseIndex):
                          Property(name="type", data_type=DataType.TEXT),
                          Property(name="publication_year", data_type=DataType.INT),
                          Property(name="language", data_type=DataType.TEXT),
+                         Property(name="cited_by", data_type=DataType.INT),
                          Property(name="published", data_type=DataType.TEXT),
                          Property(name="authors", data_type=DataType.TEXT_ARRAY),
                          Property(name="topics", data_type=DataType.TEXT_ARRAY),
@@ -213,14 +229,20 @@ class WeaviateIndex(DenseIndex):
 
         response = self.collection.query.near_vector(
             near_vector=query_vectors[0].numpy(),
-            limit=20,
+            limit=100,
+            distance=0.25,
             target_vector="vector",
             return_metadata=MetadataQuery(distance=True)
         )
 
         results = []
         for res in response.objects:
-            results.append({**res.properties, "distance": res.metadata.distance})
+            chunk = {**res.properties, "score": 1.0 - res.metadata.distance}
+
+            if chunk["text"].strip().startswith(chunk["meta"]["title"]):
+                continue
+
+            results.append(chunk)
         return results
 
     def search(self, queries: List[str]) -> List[Dict[str, Any]]:

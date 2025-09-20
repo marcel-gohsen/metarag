@@ -19,6 +19,9 @@ async function inputSubmitted(e){
     userBox.querySelector(".utterance").innerHTML = userInput.value
     document.getElementById("chat-window").appendChild(userBox)
 
+    let chatWindow = document.getElementById("chat-window")
+    chatWindow.scrollTop = chatWindow.scrollHeight
+
     userInput.value = "";
 
     let conversation = []
@@ -69,6 +72,8 @@ async function chat(conversation){
         let utterance = systemBox.querySelector(".utterance")
         utterance.classList.remove("loading")
         utterance.innerHTML = converter.makeHtml(text)
-        utterance.scrollIntoView()
+        // utterance.scrollIntoView()
+        let chatWindow = document.getElementById("chat-window")
+        chatWindow.scrollTop = chatWindow.scrollHeight
     }
 }

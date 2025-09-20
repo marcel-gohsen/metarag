@@ -26,7 +26,7 @@ class SentenceTransformerEmbeddingModel(EmbeddingModel):
         cuda_device_name = torch.cuda.get_device_name(torch.cuda.current_device())
         if ("A100" in cuda_device_name) or ("H100" in cuda_device_name):
             model_kwargs["attn_implementation"] = "flash_attention_2"
-            model_kwargs["torch_dtype"] = torch.float16
+        model_kwargs["torch_dtype"] = torch.float16
 
         self.model = SentenceTransformer(model_id, trust_remote_code=True,
                                          model_kwargs=model_kwargs)

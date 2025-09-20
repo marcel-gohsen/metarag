@@ -2,6 +2,7 @@ SHELL:=/bin/bash
 
 VERSION=$(shell poetry version --short)
 BASE_IMAGE=registry.webis.de/code-research/conversational-search/rag-on-rag-demo/base
+APP_IMAGE=registry.webis.de/code-research/conversational-search/rag-on-rag-demo/app
 
 pdf_to_md:
 	python3 src/paper_crawling/sync_pdf_files.py
@@ -17,10 +18,16 @@ get_md:
 build_base:
 	docker build -t ${BASE_IMAGE}:${VERSION} -t ${BASE_IMAGE}:latest -f base.Dockerfile .
 
+build_app:
+	docker build -t ${APP_IMAGE}:${VERSION} -t ${APP_IMAGE}:latest -f app.Dockerfile .
+
 push:
 	docker push ${BASE_IMAGE} --all-tags
+	docker push ${APP_IMAGE} --all-tags
 
-ES_API_KEY=""
+include auth.env
+export
+
 INDEX_TYPE="elastic"
 EMB_MODEL="qwen3-embedding-0.6B"
 BATCH_SIZE=64
@@ -30,6 +37,9 @@ run_indexing_slurm:
 	rsync indexing.sbatch.sh /mnt/ceph/storage/data-tmp/2025/kipu5728/rag-on-rag/
 	ssh ssh.webis.de \
 		'ES_API_KEY=${ES_API_KEY} INDEX_TYPE=${INDEX_TYPE} EMB_MODEL=${EMB_MODEL} BATCH_SIZE=${BATCH_SIZE} sbatch --container-env=EMB_MODEL,BATCH_SIZE rag-on-rag/indexing.sbatch.sh'
+
+run_app_local:
+	docker run --gpus all -e ES_API_KEY=${ES_API_KEY} -e OPENAI_KEY=${OPENAI_KEY} -p 8000:8000 ${APP_IMAGE}:latest
 
 
 

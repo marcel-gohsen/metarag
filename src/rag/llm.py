@@ -58,11 +58,11 @@ class LLM(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def generate(self, messages: List[Dict[str, str]], **kwargs) -> List[str]:
+    def generate(self, messages: List[Dict[str, str]], tools=None, **kwargs) -> List[str]:
         pass
 
     @abc.abstractmethod
-    def generate_stream(self, messages: List[Dict[str, str]], **kwargs) -> Generator[str, None, None]:
+    def generate_stream(self, messages: List[Dict[str, str]], tools=None, **kwargs) -> Generator[str, None, None]:
         pass
 
     @abc.abstractmethod
@@ -137,7 +137,7 @@ class HFModel(LLM, metaclass=abc.ABCMeta):
                 messages, return_tensors='pt', add_generation_prompt=True, return_dict=True, enable_thinking=False).to("cuda")
 
 
-    def generate(self, messages: List[Dict[str, str]], **kwargs) -> List[str]:
+    def generate(self, messages: List[Dict[str, str]], tools=None, **kwargs) -> List[str]:
         inputs = self.tokenize_messages(messages)
         outputs = self.model.generate(
             **inputs,
@@ -163,7 +163,7 @@ class HFModel(LLM, metaclass=abc.ABCMeta):
         outputs = self.tokenizer.batch_decode(gen_ids, skip_special_tokens=True)
         return outputs
 
-    def generate_stream(self, messages: List[Dict[str, str]], **kwargs) -> Generator[str, None, None]:
+    def generate_stream(self, messages: List[Dict[str, str]], tools=None, **kwargs) -> Generator[str, None, None]:
         streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True)
         inputs = self.tokenize_messages(messages)
 
@@ -216,9 +216,9 @@ class OpenAIModel(LLM):
 
         logging.getLogger("httpcore.connection").setLevel(logging.INFO)
         logging.getLogger("httpcore.http11").setLevel(logging.INFO)
-        self.client = OpenAI(api_key=key)
+        self.client = OpenAI(api_key=key, project="proj_N9QKkLI9iESEPHCFdZudNHDj")
 
-    def generate(self, messages: List[Dict[str, str]], **kwargs) -> List[str]:
+    def generate(self, messages: List[Dict[str, str]], tools=None, **kwargs) -> List[str]:
         response = self.client.chat.completions.create(
             model=self.model_name,
             messages=messages,
@@ -232,3 +232,34 @@ class OpenAIModel(LLM):
 
     def batch_generate(self, messages: List[List[Dict[str, str]]], **kwargs) -> List[str]:
         raise NotImplemented()
+
+    def generate_stream(self, messages: List[Dict[str, str]], tools=None, **kwargs) -> Generator[str, None, None]:
+        response = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=messages,
+            modalities=["text"],
+            stream=True,
+            tools=tools,
+            **kwargs
+        )
+
+        tool_call_string = ""
+        arguments_string = ""
+        for chunk in response:
+            delta = chunk.choices[0].delta
+
+            if delta.tool_calls is not None:
+                if delta.tool_calls[0].function.name is not None:
+                    tool_call_string += delta.tool_calls[0].function.name
+                if delta.tool_calls[0].function.arguments is not None:
+                    arguments_string += delta.tool_calls[0].function.arguments
+            else:
+                token = delta.content
+
+                if token is not None:
+                    yield chunk.choices[0].delta.content
+
+        if tool_call_string != "":
+            yield f"{tool_call_string}({arguments_string})"
+
+

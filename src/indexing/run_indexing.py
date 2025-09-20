@@ -6,7 +6,9 @@ import re
 from typing import Any, Dict, Generator
 
 import click
+import numpy as np
 import pandas as pd
+from dateutil.parser import parse, ParserError
 from tqdm import tqdm
 
 from config import EMBEDDING_MODELS, INDICES, CONFIG
@@ -16,6 +18,9 @@ from indexing.search_index import DenseIndex
 
 def load_raw(path: str) -> Generator[Dict[str, Any], None, None]:
     df_meta = pd.read_csv(CONFIG["data"]["meta_file"]).set_index("id")
+    df_meta["publication_year"] = df_meta["publication_year"].astype("string")
+    df_meta["cited_by_count"] = df_meta["cited_by_count"].astype("int64")
+    df_meta = df_meta.replace({np.nan: None})
     whitespace_pattern = re.compile(r"\s+")
 
     for file in os.listdir(path):
@@ -29,14 +34,21 @@ def load_raw(path: str) -> Generator[Dict[str, Any], None, None]:
 
         meta = df_meta.loc[[_id]]
         meta = meta.reset_index().to_dict(orient="index")[0]
+        try:
+            parse_date = parse(meta["publication_date"], fuzzy=True)
+            publication_year = parse_date.year
+        except ParserError:
+            publication_year = None
+
         data = {
             "id": _id,
             "meta": {
                 "title": whitespace_pattern.sub( " ", meta["title"]),
                 "doi": meta["doi"],
                 "type": meta["type"],
-                "publication_year": meta["publication_year"],
+                "publication_year": publication_year,
                 "language": meta["language"],
+                "cited_by": meta["cited_by_count"],
                 "published": meta["primary_location.source.display_name"],
                 "authors": [a for a in str(meta["authorships.author.display_name"]).split("|")],
                 "topics": [t for t in str(meta["topics.display_name"]).split("|")],
@@ -45,6 +57,9 @@ def load_raw(path: str) -> Generator[Dict[str, Any], None, None]:
             },
             "fulltext": fulltext,
         }
+
+        if isinstance(data["meta"]["published"], float):
+            data["meta"]["published"] = None
 
         yield data
 
