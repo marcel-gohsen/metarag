@@ -1,4 +1,4 @@
-# RAG-on-RAG Demo
+# MetaRAG Demo
 
 Demo for a RAG application about the topic of RAG. 
 
@@ -6,13 +6,13 @@ Demo for a RAG application about the topic of RAG.
 
 List of paper that container "retrieval augmented generation" in the title or abstract.
 
-Total number of papers: 4,604
+Total number of papers: 6,888
 
 ### Download status
 
 | Success | Errors |  No url |
 |--------:|-------:|--------:|
-|   2,296 |  2,261 |      47 |
+|   3,116 |  2,261 |      47 |
 
 ### Preprocessing steps
 
